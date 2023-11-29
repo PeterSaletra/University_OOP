@@ -1,4 +1,5 @@
 package src.Client;
+import src.ClientLogger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,6 +15,7 @@ public class Client implements  Runnable{
     private BufferedReader in;
     private PrintWriter out;
     private boolean done;
+    private ClientLogger logger = new ClientLogger("client_log.txt");
     @Override
     public void run() {
         try{

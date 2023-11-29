@@ -1,4 +1,6 @@
 package src.Server;
+import src.ServerLogger;
+
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
@@ -10,16 +12,19 @@ public class Server implements Runnable{
     private ServerSocket server;
     private boolean done;
     private ExecutorService pool;
+    private ServerLogger logger;
 
     public Server(){
         done = false;
         connctions = new ArrayList<>();
+        logger = new ServerLogger("server_Log.txt");
     }
     @Override
     public void run() {
         try{
             server = new ServerSocket(9999);
             pool = Executors.newCachedThreadPool();
+            logger.log("Server started");
             while(!done){
                 Socket client = server.accept();
                 ConnectionHandler handler = new ConnectionHandler(client);
@@ -27,6 +32,7 @@ public class Server implements Runnable{
                 pool.execute(handler);
             }
         }catch (Exception e){
+            logger.log("Connection error: " + e.getMessage());
             shutdown();
         }
     }
@@ -42,12 +48,14 @@ public class Server implements Runnable{
             done = true;
             pool.shutdown();
             if(!server.isClosed()){
+                logger.log("Server shutting down...");
                 server.close();
             }
             for(ConnectionHandler ch: connctions){
                 ch.shutdown();
             }
         }catch (IOException e){
+            logger.log("Shutting down error: " + e.getMessage());
             // ignore
         }
 
@@ -71,8 +79,11 @@ public class Server implements Runnable{
                 out.println("Please enter a nickname: ");
                 nickname = in.readLine();
                 System.out.println(nickname + " connected");
+                logger.log(nickname + " connected");
                 broadcast(nickname + " joined the chat!");
+                logger.log(nickname + " joined the chat!");
 
+                //tu trzeba dodac logi ale narazie im sie nie chce czytac co to za kongo
                 String message;
                 while ((message = in.readLine()) != null) {
                     if (message.startsWith("/nick ")) {
