@@ -1,5 +1,5 @@
 package src.Server;
-import src.ServerLogger;
+import src.Logger.ServerLogger;
 
 import java.net.*;
 import java.io.*;
@@ -42,6 +42,9 @@ public class Server implements Runnable{
             ch.sendMessage(message);
         }
     }
+    public void echoClientMessage(String message){
+        logger.echo("Client: " + message);
+    }
 
     public void shutdown(){
         try{
@@ -80,10 +83,11 @@ public class Server implements Runnable{
                 nickname = in.readLine();
                 System.out.println(nickname + " connected");
                 logger.log(nickname + " connected");
+                logger.echo(nickname + " connected");
                 broadcast(nickname + " joined the chat!");
                 logger.log(nickname + " joined the chat!");
 
-                //tu trzeba dodac logi ale narazie im sie nie chce czytac co to za kongo
+                //trzeba tu dodac echo i log
                 String message;
                 while ((message = in.readLine()) != null) {
                     if (message.startsWith("/nick ")) {
@@ -100,6 +104,9 @@ public class Server implements Runnable{
                         broadcast(nickname + "left chat");
                         shutdown();
                     } else {
+                        //test
+                        logger.log(nickname + ": " + message);
+                        echoClientMessage(nickname + ": " + message);
                         broadcast(nickname + ": " + message);
                     }
                 }
@@ -116,6 +123,7 @@ public class Server implements Runnable{
             try{
                 in.close();
                 out.close();
+                logger.close();
                 if (!client.isClosed()) {
                     client.close();
                 }

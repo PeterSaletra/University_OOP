@@ -1,16 +1,19 @@
-package src;
+package src.Logger;
+
+
+import src.Logger.Logger;
 
 import java.io.IOException;
 
-public class ServerLogger extends Logger {
-    public ServerLogger(String logFileName) {
+public class ClientLogger extends Logger {
+    public ClientLogger(String logFileName) {
         super(logFileName);
     }
 
     @Override
     public void log(String message) {
         try {
-            logWriter.write("[Server] [" + getTimestamp() + "] " + message);
+            logWriter.write("[Client] [" + getTimestamp() + "] " + message);
             logWriter.newLine();
             logWriter.flush();
         } catch (IOException e) {
