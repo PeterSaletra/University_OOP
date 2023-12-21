@@ -7,6 +7,8 @@ public abstract class Logger {
     protected BufferedWriter logWriter;
     protected Writer consoleWriter;
 
+    public Logger(){}
+
     public Logger(String logFileName) {
         try {
             logWriter = new BufferedWriter(new FileWriter(logFileName, true));
@@ -16,22 +18,7 @@ public abstract class Logger {
         }
     }
 
-    public abstract void log(String message);
-
-    public void echo(String message) {
-        try {
-            consoleWriter.write(message);
-            consoleWriter.write(System.lineSeparator());
-            consoleWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    protected String getTimestamp(){
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return dateFormat.format(new Date());
-    }
+    public abstract void echo(String message, Boolean log);
 
     public void close() {
         try {
@@ -39,5 +26,10 @@ public abstract class Logger {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    protected String getTimestamp(){
+        SimpleDateFormat dateFormat = new SimpleDateFormat("[yyyy-MM-dd][HH;mm;ss]");
+        return dateFormat.format(new Date());
     }
 }

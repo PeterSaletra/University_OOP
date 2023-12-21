@@ -1,19 +1,17 @@
 package src.Client;
 import src.Logger.ClientLogger;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class Client implements  Runnable{
+public class Client implements Runnable {
 
     private Socket client;
     private BufferedReader in;
     private PrintWriter out;
     private boolean done;
-    private ClientLogger logger = new ClientLogger("client_log.txt");
     @Override
     public void run() {
         try{
