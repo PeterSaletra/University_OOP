@@ -23,6 +23,51 @@ public class Server implements Runnable{
     }
     @Override
     public void run() {
+        try {
+            server = new ServerSocket(9999);
+            pool = Executors.newCachedThreadPool();
+            logger.echo("Starting...", true);
+            logger.echo("Server successfully started!", true);
+
+            Thread terminalInputThread = new Thread(() -> {
+                BufferedReader terminalReader = new BufferedReader(new InputStreamReader(System.in));
+                try {
+                    while (true) {
+                        String command = terminalReader.readLine();
+                        if ("shutdown".equalsIgnoreCase(command.trim())) {
+                            logger.echo("Received shutdown command. Shutting down the server...", true);
+                            shutdown();
+                            break;
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+
+            terminalInputThread.start();
+
+            while (!done) {
+                if (server.isClosed()) {
+                    break;
+                }
+                try {
+                    Socket client = server.accept();
+                    ConnectionHandler handler = new ConnectionHandler(client);
+                    connctions.add(handler);
+                    pool.execute(handler);
+                } catch (SocketException se) {
+                    if (!server.isClosed()) {
+                        se.printStackTrace();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+/*    public void run() {
         try{
             server = new ServerSocket(9999);
             pool = Executors.newCachedThreadPool();
@@ -38,7 +83,7 @@ public class Server implements Runnable{
             logger.echo("Connection error: " + e.getMessage(), true);
             shutdown();
         }
-    }
+    }*/
 
     public void broadcast(String message){
         for(ConnectionHandler ch: connctions){
@@ -51,7 +96,6 @@ public class Server implements Runnable{
             done = true;
             pool.shutdown();
             if(!server.isClosed()){
-                logger.echo("Server shutting down...", true);
                 logger.echo("Server closed!", true);
                 server.close();
             }
