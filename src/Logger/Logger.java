@@ -7,6 +7,15 @@ public abstract class Logger {
     protected BufferedWriter logWriter;
     protected Writer consoleWriter;
 
+//    public Logger(){
+//        try {
+//            logWriter = new BufferedWriter(new FileWriter("DUpa", true));
+//            consoleWriter = new OutputStreamWriter(System.out);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
     public Logger(String logFileName) {
         try {
             logWriter = new BufferedWriter(new FileWriter(logFileName, true));

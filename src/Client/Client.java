@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class Client implements  Runnable{
 
@@ -13,11 +14,25 @@ public class Client implements  Runnable{
     private BufferedReader in;
     private PrintWriter out;
     private boolean done;
+    private String host;
+    private int port;
     private ClientLogger logger = new ClientLogger("client_log.txt");
+
+    Client(){
+        this.host = "127.0.0.1";
+        this.port = 9999;
+    }
+
+    Client(String connection){
+        String[] con = connection.split(":");
+        this.host = con[0];
+        this.port = Integer.parseInt(con[1]);
+    }
+
     @Override
     public void run() {
         try{
-            client = new Socket("127.0.0.1", 9999);
+            client = new Socket(host, port);
             out = new PrintWriter(client.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
@@ -70,7 +85,11 @@ public class Client implements  Runnable{
     }
 
     public static void main(String[] args) {
-        Client client = new Client();
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Podaj server:");
+        String connection = sc.nextLine();
+
+        Client client = new Client(connection);
         client.run();
     }
 }

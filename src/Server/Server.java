@@ -13,16 +13,26 @@ public class Server implements Runnable{
     private boolean done;
     private ExecutorService pool;
     private ServerLogger logger;
+    private int port;
 
     public Server(){
         done = false;
         connctions = new ArrayList<>();
         logger = new ServerLogger("server_Log.txt");
+        port = 9999;
     }
+
+    public Server(int port){
+        done = false;
+        connctions = new ArrayList<>();
+        logger = new ServerLogger("server_Log.txt");
+        this.port = port;
+    }
+
     @Override
     public void run() {
         try{
-            server = new ServerSocket(9999);
+            server = new ServerSocket(port);
             pool = Executors.newCachedThreadPool();
             logger.log("Server started");
             while(!done){
