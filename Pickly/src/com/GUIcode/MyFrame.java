@@ -1,6 +1,7 @@
 package com.GUIcode;
 
-import components.RoundedPanel;
+import components.*;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,15 +9,11 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.io.IOException;
 
-class User{
-    private String nickname;
-    private String status;
-    public User(String nickaname, String status){
-        this.nickname= nickaname;
-        this.status = status;
-    }
-}
+
 public class MyFrame extends javax.swing.JFrame implements ActionListener {
+
+    private components.RoundedPanel loginSection;
+
     private javax.swing.JPanel App;
     private components.RoundedPanel mainSection;
     private javax.swing.JLabel logo;
@@ -33,13 +30,15 @@ public class MyFrame extends javax.swing.JFrame implements ActionListener {
     private static javax.swing.JButton sendBtn;
     private static javax.swing.JTextField messageField;
     private components.RoundedPanel rightBarUpperBar;
+    private RoundedPanel rightPanel;
 
+
+    CardLayout crd;
 
     boolean sessionExists = false;
     boolean toggleUserSide = true;
 
     private User[] users = new User[2];
-    private final int LINE_SIZE = 30;
 
     public MyFrame() throws IOException {
 
@@ -77,11 +76,18 @@ public class MyFrame extends javax.swing.JFrame implements ActionListener {
     }
     @SuppressWarnings("unchecked")
 
+    private void initLoginCard(){
+
+    }
+
+
     private void initComponents() throws IOException {
         setTitle("Pickly");
         setResizable(false);
         setSize(new java.awt.Dimension(905, 720));
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        crd = new CardLayout();
 
         App = new javax.swing.JPanel();
         App.setPreferredSize(new java.awt.Dimension(905, 680));
@@ -89,6 +95,11 @@ public class MyFrame extends javax.swing.JFrame implements ActionListener {
         btnIP = new javax.swing.JButton();
         btnIP = new JButton("Connect");
         btnIP.addActionListener(e -> {
+            mainSection.add(Box.createHorizontalStrut(40));
+            mainSection.add(rightPanel);
+
+            mainSection.revalidate();
+            mainSection.repaint();
         });
 
         inputIP = new javax.swing.JTextField();
@@ -158,6 +169,7 @@ public class MyFrame extends javax.swing.JFrame implements ActionListener {
         chatSection.add(bottomBarMessagesContainer, BorderLayout.SOUTH);
 
 
+
         ImageIcon logoIcon = new ImageIcon("Pickly/src/img/pickleLogo.png");
         logo = new JLabel(logoIcon);
         logo.setOpaque(true);
@@ -190,9 +202,16 @@ public class MyFrame extends javax.swing.JFrame implements ActionListener {
         JTextArea activeUsersTextArea = new JTextArea(10, 20);
         activeUsersTextArea.setEditable(false);
 
+        Awatar awatarIcon = new Awatar("Pickly/src/img/EmptyAwatar.png", 50, 50);
+        JLabel awatarLabel = new JLabel(awatarIcon);
+        awatarLabel.setOpaque(true);
+
+
         rightBarActiveUsersSection = new JPanel();
         rightBarActiveUsersSection.setBackground(new java.awt.Color(255, 255, 255));
         rightBarActiveUsersSection.setLayout(new javax.swing.BoxLayout(rightBarActiveUsersSection, javax.swing.BoxLayout.Y_AXIS));
+        rightBarActiveUsersSection.add(new UserTile(awatarIcon, users[0]));
+        rightBarActiveUsersSection.add(new UserTile(awatarIcon, users[1]));
         rightBarActiveUsersSection.add(Box.createVerticalGlue());
 
         rightBar.add(rightBarUpperBar, BorderLayout.NORTH);
@@ -204,79 +223,38 @@ public class MyFrame extends javax.swing.JFrame implements ActionListener {
         leftPanel.setRoundTopRight(20);
         leftPanel.setRoundBottomLeft(20);
         leftPanel.setRoundBottomRight(20);
-        leftPanel.setLayout(new BorderLayout());
-        leftPanel.add(chatSection, BorderLayout.CENTER);
 
-        RoundedPanel rightPanel = new components.RoundedPanel();
+        leftPanel.setLayout(crd);
+        leftPanel.add(new Login(crd, leftPanel));
+        leftPanel.add(chatSection);
+
+
+        rightPanel = new components.RoundedPanel();
         rightPanel.setLayout(new BorderLayout());
         rightPanel.add(rightBar, BorderLayout.CENTER);
         rightPanel.setRoundTopLeft(20);
         rightPanel.setRoundTopRight(20);
         rightPanel.setRoundBottomLeft(20);
         rightPanel.setRoundBottomRight(20);
-
         mainSection.add(leftPanel);
-        mainSection.add(Box.createHorizontalStrut(40));
-        mainSection.add(rightPanel);
-
         App.setLayout(new BorderLayout());
         App.add(mainSection, BorderLayout.CENTER);
         getContentPane().add(App);
         pack();
     }
 
-    private String divideMessage(String message){
-        int fullLines = message.length() / LINE_SIZE;
-        String dividedMessage = "";
-        for (int i = 0; i < fullLines * LINE_SIZE; i+=LINE_SIZE)
-            dividedMessage = dividedMessage.concat(message.substring(i, i+LINE_SIZE) + "<br>");
-        for (int i = fullLines * LINE_SIZE; i < message.length() ; i++)
-            dividedMessage = dividedMessage.concat(String.valueOf(message.charAt(i)));
-        return dividedMessage;
-    }
 
-    private JPanel createMessage(String text, int option){
-        JLabel messageLabel = new JLabel();
-        messageLabel.setText("<html>" + text + "</html>");
-        messageLabel.setBorder(new EmptyBorder(10,10,10,10));
-
-        RoundedPanel messageWrapper = new components.RoundedPanel();
-        messageWrapper.setRoundTopLeft(20);
-        messageWrapper.setRoundTopRight(20);
-        messageWrapper.setRoundBottomLeft(20);
-        messageWrapper.setRoundBottomRight(20);
-        messageWrapper.setBackground(new Color(204, 255, 153));
-        messageWrapper.setLayout(new BorderLayout());
-        messageWrapper.add(messageLabel, BorderLayout.CENTER);
-
-        JPanel panelLabel = new JPanel();
-        panelLabel.setLayout(new BorderLayout());
-        panelLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, messageLabel.getPreferredSize().height + 10));
-        panelLabel.setBackground(Color.WHITE);
-        panelLabel.setBorder(new EmptyBorder(10,10,10,10));
-
-        switch (option) {
-            case 1:
-                panelLabel.add(messageWrapper, BorderLayout.EAST);
-                break;
-            case 2:
-                panelLabel.add(messageWrapper, BorderLayout.WEST);
-                break;
-        }
-        return panelLabel;
-    }
-
-    private void sendMessage(String message, int option) {
-        if (message.length() > LINE_SIZE)
-            message = divideMessage(message);
-        String finalMessage1 = message;
+    private void sendMessage(String text, int option) {
         javax.swing.SwingUtilities.invokeLater(() -> {
-            JPanel panelLabel = createMessage(finalMessage1, option);
-            messagesContainer.add(panelLabel);
+            Message messageComponent = new Message(text, option);
+            messagesContainer.add(messageComponent);
             JScrollBar verticalScrollBar = scrollPane.getVerticalScrollBar();
             verticalScrollBar.setValue(verticalScrollBar.getMaximum());
             messagesContainer.revalidate();
             messagesContainer.repaint();
+
+
+
 
         });
     }
