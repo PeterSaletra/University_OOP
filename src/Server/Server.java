@@ -1,5 +1,5 @@
 package src.Server;
-import src.Logger.ServerLogger;
+import src.Logger.*;
 
 import java.net.*;
 import java.io.*;
@@ -13,28 +13,68 @@ public class Server implements Runnable{
     private boolean done;
     private ExecutorService pool;
     private ServerLogger logger;
-    private int port;
+    private ClientLogger clLogger;
 
     public Server(){
         done = false;
         connctions = new ArrayList<>();
         logger = new ServerLogger("server_Log.txt");
-        port = 9999;
-    }
-
-    public Server(int port){
-        done = false;
-        connctions = new ArrayList<>();
-        logger = new ServerLogger("server_Log.txt");
-        this.port = port;
+        logger = new ServerLogger();
+        clLogger = new ClientLogger ();
     }
 
     @Override
     public void run() {
+        try {
+            server = new ServerSocket(9999);
+            pool = Executors.newCachedThreadPool();
+            logger.echo("Starting...", true);
+            logger.echo("Server successfully started!", true);
+
+            Thread terminalInputThread = new Thread(() -> {
+                BufferedReader terminalReader = new BufferedReader(new InputStreamReader(System.in));
+                try {
+                    while (true) {
+                        String command = terminalReader.readLine();
+                        if ("shutdown".equalsIgnoreCase(command.trim())) {
+                            logger.echo("Received shutdown command. Shutting down the server...", true);
+                            shutdown();
+                            break;
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+
+            terminalInputThread.start();
+
+            while (!done) {
+                if (server.isClosed()) {
+                    break;
+                }
+                try {
+                    Socket client = server.accept();
+                    ConnectionHandler handler = new ConnectionHandler(client);
+                    connctions.add(handler);
+                    pool.execute(handler);
+                } catch (SocketException se) {
+                    if (!server.isClosed()) {
+                        se.printStackTrace();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+/*    public void run() {
         try{
             server = new ServerSocket(port);
             pool = Executors.newCachedThreadPool();
-            logger.log("Server started");
+            logger.echo("Starting...", true);
+            logger.echo("Server succesfully started!", true);
             while(!done){
                 Socket client = server.accept();
                 ConnectionHandler handler = new ConnectionHandler(client);
@@ -42,18 +82,15 @@ public class Server implements Runnable{
                 pool.execute(handler);
             }
         }catch (Exception e){
-            logger.log("Connection error: " + e.getMessage());
+            logger.echo("Connection error: " + e.getMessage(), true);
             shutdown();
         }
-    }
+    }*/
 
     public void broadcast(String message){
         for(ConnectionHandler ch: connctions){
             ch.sendMessage(message);
         }
-    }
-    public void echoClientMessage(String message){
-        logger.echo("Client: " + message);
     }
 
     public void shutdown(){
@@ -61,26 +98,26 @@ public class Server implements Runnable{
             done = true;
             pool.shutdown();
             if(!server.isClosed()){
-                logger.log("Server shutting down...");
+                logger.echo("Server closed!", true);
                 server.close();
             }
             for(ConnectionHandler ch: connctions){
                 ch.shutdown();
             }
         }catch (IOException e){
-            logger.log("Shutting down error: " + e.getMessage());
+            logger.echo("Shutting down error: " + e.getMessage(), true);
             // ignore
         }
 
     }
 
-    class ConnectionHandler implements Runnable{
+    class ConnectionHandler implements Runnable {
         private Socket client;
         private BufferedReader in;
         private PrintWriter out;
         private String nickname;
 
-        public ConnectionHandler(Socket client){
+        public ConnectionHandler(Socket client) {
             this.client = client;
         }
 
@@ -91,32 +128,28 @@ public class Server implements Runnable{
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
                 out.println("Please enter a nickname: ");
                 nickname = in.readLine();
-                System.out.println(nickname + " connected");
-                logger.log(nickname + " connected");
-                logger.echo(nickname + " connected");
-                broadcast(nickname + " joined the chat!");
-                logger.log(nickname + " joined the chat!");
+                logger.echo(nickname + " connected", true);
+                logger.echo(nickname + " joined the chat!", true);
 
-                //trzeba tu dodac echo i log
                 String message;
                 while ((message = in.readLine()) != null) {
                     if (message.startsWith("/nick ")) {
                         String[] messageSplit = message.split(" ", 2);
                         if (messageSplit.length == 2) {
                             broadcast(nickname + " renamed themselves to " + messageSplit[1]);
-                            System.out.println(nickname + " renamed themselves to " + messageSplit[1]);
+                            logger.echo(nickname + " renamed themselves to " + messageSplit[1], true);
                             nickname = messageSplit[1];
-                            out.println("Successfuly changes nickname to " + nickname);
+                            logger.echo("Successfuly changes nickname to " + nickname, true);
                         } else {
-                            out.println("No nickname provided!");
+                            logger.echo("No nickname provided!", true);
                         }
                     } else if (message.startsWith("/quit")) {
-                        broadcast(nickname + "left chat");
+                        broadcast(nickname + " left chat");
+                        logger.echo(nickname + " left chat", true);
                         shutdown();
                     } else {
                         //test
-                        logger.log(nickname + ": " + message);
-                        echoClientMessage(nickname + ": " + message);
+                        clLogger.echo(nickname + ": " + message, true);
                         broadcast(nickname + ": " + message);
                     }
                 }
@@ -125,22 +158,22 @@ public class Server implements Runnable{
             }
         }
 
-        public void sendMessage(String message){
+        public void sendMessage(String message) {
             out.println(message);
         }
 
-        public void shutdown(){
-            try{
+        public void shutdown() {
+            try {
                 in.close();
                 out.close();
-                logger.close();
                 if (!client.isClosed()) {
                     client.close();
                 }
-            }catch (IOException e){
+            } catch (IOException e) {
                 // ignore
             }
         }
+
     }
 
     public static void main(String[] args) {
