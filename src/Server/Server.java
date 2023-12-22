@@ -14,6 +14,7 @@ public class Server implements Runnable{
     private ExecutorService pool;
     private ServerLogger logger;
     private ClientLogger clLogger;
+    private int port;
 
     public Server(){
         done = false;
@@ -21,12 +22,22 @@ public class Server implements Runnable{
         logger = new ServerLogger("server_Log.txt");
         logger = new ServerLogger();
         clLogger = new ClientLogger ();
+        port = 9999;
+    }
+
+    public Server(int port){
+        done = false;
+        connctions = new ArrayList<>();
+        logger = new ServerLogger("server_Log.txt");
+        logger = new ServerLogger();
+        clLogger = new ClientLogger ();
+        this.port = port;
     }
 
     @Override
     public void run() {
         try {
-            server = new ServerSocket(9999);
+            server = new ServerSocket(port);
             pool = Executors.newCachedThreadPool();
             logger.echo("Starting...", true);
             logger.echo("Server successfully started!", true);

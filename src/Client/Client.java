@@ -14,11 +14,28 @@ public class Client implements  Runnable{
     private PrintWriter out;
     private boolean done;
     private ClientLogger logger = new ClientLogger("client_log.txt");
+    private String host;
+    private int port;
+
+    Client(){
+        this.host = "127.0.0.1";
+        this.port = 9999;
+    }
+
+    Client(String connection){
+        try{
+            String[] con = connection.split(":");
+            this.host = con[0];
+            this.port = Integer.parseInt(con[1]);
+        }catch(Exception e){
+            logger.echo("Incorect connection data " + e.getMessage(), true);
+        }
+    }
 
     @Override
     public void run() {
         try{
-            client = new Socket("127.0.0.1", 9999);
+            client = new Socket(host, port);
             out = new PrintWriter(client.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
