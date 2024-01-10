@@ -1,11 +1,9 @@
-package components;
+package src.Client.GUIcode.components;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.plaf.metal.MetalScrollButton;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
-import java.awt.image.ImageObserver;
 import java.io.IOException;
 
 public class Message extends RoundedPanel {
@@ -57,14 +55,14 @@ public class Message extends RoundedPanel {
         this.messageLabel = messageLabel;
     }
     private void createWrapper() {
-        RoundedPanel messageWrapper = new components.RoundedPanel();
+        RoundedPanel messageWrapper = new RoundedPanel();
             messageWrapper.setBackground(new Color(204, 255, 153));
             messageWrapper.setLayout(new BorderLayout());
             messageWrapper.setRoundCorners(ARC);
 
             Awatar awatarIcon = null;
             try {
-                awatarIcon = new Awatar("Pickly/src/img/EmptyAwatar.png", 25, 25);
+                awatarIcon = new Awatar("src/Client/img/EmptyAwatar.png", 25, 25);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

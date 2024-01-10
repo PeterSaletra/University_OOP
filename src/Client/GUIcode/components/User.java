@@ -1,4 +1,4 @@
-package components;
+package src.Client.GUIcode.components;
 
 public class User{
     public String nickname;

@@ -1,4 +1,4 @@
-package components;
+package src.Client.GUIcode.components;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -7,9 +7,9 @@ import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
-import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
-public class RoundedTextArea extends JTextArea {
+public class RoundedTextField extends JTextField {
 
     public int getRoundTopLeft() {
         return roundTopLeft;
@@ -52,7 +52,7 @@ public class RoundedTextArea extends JTextArea {
     private int roundBottomLeft = 0;
     private int roundBottomRight = 0;
 
-    public RoundedTextArea() {
+    public RoundedTextField() {
         setOpaque(false);
     }
 
@@ -120,3 +120,4 @@ public class RoundedTextArea extends JTextArea {
         return area;
     }
 }
+

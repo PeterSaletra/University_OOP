@@ -1,4 +1,4 @@
-package components;
+package src.Client.GUIcode.components;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

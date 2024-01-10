@@ -1,4 +1,4 @@
-package components;
+package src.Client.GUIcode.components;
 
 import javax.swing.JPanel;
 import javax.swing.JLabel;
@@ -28,7 +28,7 @@ public class Timestamp extends RoundedPanel{
 
         Awatar awatarIcon = null;
         try {
-            awatarIcon = new Awatar("Pickly/src/img/EmptyAwatar.png", 25, 25);
+            awatarIcon = new Awatar("src/Client/img/EmptyAwatar.png", 25, 25);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

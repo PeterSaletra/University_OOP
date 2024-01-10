@@ -1,59 +1,62 @@
-package components;
+package src.Client.GUIcode.components;
 
-import java.awt.*;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
-import javax.swing.JPanel;
+import javax.swing.JButton;
 
-public class RoundedPanel extends JPanel {
+public class RoundedButton extends JButton {
 
-    private int roundTopLeft = 0;
-    private int roundTopRight = 0;
-    private int roundBottomLeft = 0;
-    private int roundBottomRight = 0;
+    public void setBorder(int value){
+        this.setBorder(value);
+    }
 
     public int getRoundTopLeft() {
         return roundTopLeft;
+    }
+
+    public void setRoundTopLeft(int roundTopLeft) {
+        this.roundTopLeft = roundTopLeft;
+        repaint();
     }
 
     public int getRoundTopRight() {
         return roundTopRight;
     }
 
+    public void setRoundTopRight(int roundTopRight) {
+        this.roundTopRight = roundTopRight;
+        repaint();
+    }
+
     public int getRoundBottomLeft() {
         return roundBottomLeft;
+    }
+
+    public void setRoundBottomLeft(int roundBottomLeft) {
+        this.roundBottomLeft = roundBottomLeft;
+        repaint();
     }
 
     public int getRoundBottomRight() {
         return roundBottomRight;
     }
 
-    public void setRoundTopLeft(int arc) {
-        this.roundTopLeft = arc;
-        repaint();
-    }
-    public void setRoundTopRight(int arc) {
-        this.roundTopRight = arc;
-        repaint();
-    }
-    public void setRoundBottomLeft(int arc) {
-        this.roundBottomLeft = arc;
-        repaint();
-    }
-    public void setRoundBottomRight(int arc) {
-        this.roundBottomRight = arc;
-        repaint();
-    }
-    public void setRoundCorners(int arc) {
-        this.roundTopLeft = arc;
-        this.roundTopRight = arc;
-        this.roundBottomLeft = arc;
-        this.roundBottomRight = arc;
+    public void setRoundBottomRight(int roundBottomRight) {
+        this.roundBottomRight = roundBottomRight;
         repaint();
     }
 
-    public RoundedPanel() {
+    private int roundTopLeft = 0;
+    private int roundTopRight = 0;
+    private int roundBottomLeft = 0;
+    private int roundBottomRight = 0;
+
+    public RoundedButton() {
         setOpaque(false);
     }
 
@@ -62,7 +65,6 @@ public class RoundedPanel extends JPanel {
         Graphics2D g2 = (Graphics2D) grphcs.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setColor(getBackground());
-
         Area area = new Area(createRoundTopLeft());
         if (roundTopRight > 0) {
             area.intersect(new Area(createRoundTopRight()));
@@ -73,11 +75,11 @@ public class RoundedPanel extends JPanel {
         if (roundBottomRight > 0) {
             area.intersect(new Area(createRoundBottomRight()));
         }
-
         g2.fill(area);
         g2.dispose();
         super.paintComponent(grphcs);
     }
+
     private Shape createRoundTopLeft() {
         int width = getWidth();
         int height = getHeight();
@@ -121,15 +123,4 @@ public class RoundedPanel extends JPanel {
         area.add(new Area(new Rectangle2D.Double(0, 0, width, height - roundY / 2)));
         return area;
     }
-
-//    public void add(RoundedPanel panel) {
-//        Container cPane = getRootPane().getContentPane();
-//        System.out.println(cPane);
-//        cPane.setLayout(new CardLayout());
-//        cPane.add(panel);
-//    }
-
-//    public void add(CardLayout loginCard, String center) {
-//
-//    }
 }

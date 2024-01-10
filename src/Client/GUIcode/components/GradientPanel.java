@@ -1,10 +1,9 @@
-package components;
+package src.Client.GUIcode.components;
 
 import java.awt.Color;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class GradientPanel extends JLayeredPane {

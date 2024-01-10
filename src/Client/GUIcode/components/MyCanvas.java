@@ -1,7 +1,6 @@
-package components;
+package src.Client.GUIcode.components;
 
 import java.awt.*;
-import javax.swing.JFrame;
 
 public class MyCanvas extends Canvas{
 

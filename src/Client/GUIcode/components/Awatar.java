@@ -1,4 +1,4 @@
-package components;
+package src.Client.GUIcode.components;
 
 import javax.swing.ImageIcon;
 import java.awt.Image;
