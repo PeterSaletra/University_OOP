@@ -2,7 +2,6 @@ package src.Client;
 
 import src.Client.GUIcode.components.*;
 
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -12,7 +11,10 @@ import java.io.IOException;
 
 
 public class App extends JFrame implements ActionListener {
-    private JPanel App;
+
+    private RoundedPanel loginSection;
+
+    private static JPanel App;
     private RoundedPanel mainSection;
     private JLabel logo;
     private RoundedPanel rightBar;
@@ -28,7 +30,10 @@ public class App extends JFrame implements ActionListener {
     private static JButton sendBtn;
     private static JTextField messageField;
     private RoundedPanel rightBarUpperBar;
+    private RoundedPanel rightPanel;
 
+
+    CardLayout crd;
 
     boolean sessionExists = false;
     boolean toggleUserSide = true;
@@ -71,11 +76,22 @@ public class App extends JFrame implements ActionListener {
     }
     @SuppressWarnings("unchecked")
 
+    private void initLoginCard(){
+
+    }
+
+    public static void createPopUpWindow(String message){
+        JOptionPane.showMessageDialog(App, message);
+    }
+
+
     private void initComponents() throws IOException {
         setTitle("Pickly");
         setResizable(false);
         setSize(new Dimension(905, 720));
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+        crd = new CardLayout();
 
         App = new JPanel();
         App.setPreferredSize(new Dimension(905, 680));
@@ -83,6 +99,25 @@ public class App extends JFrame implements ActionListener {
         btnIP = new JButton();
         btnIP = new JButton("Connect");
         btnIP.addActionListener(e -> {
+            mainSection.add(Box.createHorizontalStrut(40));
+            mainSection.add(rightPanel);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            mainSection.revalidate();
+            mainSection.repaint();
         });
 
         inputIP = new JTextField();
@@ -152,6 +187,7 @@ public class App extends JFrame implements ActionListener {
         chatSection.add(bottomBarMessagesContainer, BorderLayout.SOUTH);
 
 
+
         ImageIcon logoIcon = new ImageIcon("src/Client/img/pickleLogo.png");
         logo = new JLabel(logoIcon);
         logo.setOpaque(true);
@@ -205,27 +241,28 @@ public class App extends JFrame implements ActionListener {
         leftPanel.setRoundTopRight(20);
         leftPanel.setRoundBottomLeft(20);
         leftPanel.setRoundBottomRight(20);
-        leftPanel.setLayout(new BorderLayout());
-        leftPanel.add(chatSection, BorderLayout.CENTER);
 
-        RoundedPanel rightPanel = new RoundedPanel();
+        leftPanel.setLayout(crd);
+        leftPanel.add(new Login(crd, leftPanel));
+        leftPanel.add(chatSection);
+
+
+        rightPanel = new RoundedPanel();
         rightPanel.setLayout(new BorderLayout());
         rightPanel.add(rightBar, BorderLayout.CENTER);
         rightPanel.setRoundTopLeft(20);
         rightPanel.setRoundTopRight(20);
         rightPanel.setRoundBottomLeft(20);
         rightPanel.setRoundBottomRight(20);
-
         mainSection.add(leftPanel);
-        mainSection.add(Box.createHorizontalStrut(40));
-        mainSection.add(rightPanel);
-
         App.setLayout(new BorderLayout());
         App.add(mainSection, BorderLayout.CENTER);
-
         getContentPane().add(App);
         pack();
     }
+
+
+
 
 
     private void sendMessage(String text, int option) {
@@ -236,6 +273,10 @@ public class App extends JFrame implements ActionListener {
             verticalScrollBar.setValue(verticalScrollBar.getMaximum());
             messagesContainer.revalidate();
             messagesContainer.repaint();
+
+
+
+
         });
     }
 
@@ -263,11 +304,29 @@ public class App extends JFrame implements ActionListener {
 
 
 
-        MyFrame myFrame = new MyFrame();
-        myFrame.setVisible(true);
+        App app = new App();
+        app.setVisible(true);
+
+        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                Thread.sleep(1);
+                Client client = new Client();
+                client.run();
+                return null;
+            }
+            @Override
+            protected void done() {
+
+            }
+        };
+        worker.execute();
+
+
+
+
     }
 }
-
 
 
 

@@ -24,11 +24,17 @@ public class Client implements  Runnable{
 
     Client(String connection){
         try{
+
+            System.out.println(connection);
+
+
+
             String[] con = connection.split(":");
             this.host = con[0];
             this.port = Integer.parseInt(con[1]);
         }catch(Exception e){
-            logger.echo("Incorect connection data " + e.getMessage(), true);
+            App.createPopUpWindow(e.getMessage());
+            logger.echo("Incorrect connection data " + e.getMessage(), true);
         }
     }
 
@@ -87,8 +93,12 @@ public class Client implements  Runnable{
         }
     }
 
-    public static void main(String[] args) {
-        Client client = new Client();
-        client.run();
-    }
+
+
+//    public static void main(String[] args) {
+//        Client client = new Client();
+//        client.run();
+//    }
+
+
 }
