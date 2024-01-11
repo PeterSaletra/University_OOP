@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 
 public class Server implements Runnable{
     private ArrayList<ConnectionHandler> connctions;
+    private ArrayList<String> activeUsers;
     private ServerSocket server;
     private boolean done;
     private ExecutorService pool;
@@ -19,6 +20,7 @@ public class Server implements Runnable{
     public Server(){
         done = false;
         connctions = new ArrayList<>();
+        activeUsers= new ArrayList<>();
         logger = new ServerLogger("server_Log.txt");
         logger = new ServerLogger();
         clLogger = new ClientLogger ();
@@ -28,6 +30,7 @@ public class Server implements Runnable{
     public Server(int port){
         done = false;
         connctions = new ArrayList<>();
+        activeUsers= new ArrayList<>();
         logger = new ServerLogger("server_Log.txt");
         logger = new ServerLogger();
         clLogger = new ClientLogger ();
@@ -69,6 +72,7 @@ public class Server implements Runnable{
                     ConnectionHandler handler = new ConnectionHandler(client);
                     connctions.add(handler);
                     pool.execute(handler);
+
                 } catch (SocketException se) {
                     if (!server.isClosed()) {
                         se.printStackTrace();
@@ -80,30 +84,11 @@ public class Server implements Runnable{
         }
     }
 
-/*    public void run() {
-        try{
-            server = new ServerSocket(port);
-            pool = Executors.newCachedThreadPool();
-            logger.echo("Starting...", true);
-            logger.echo("Server succesfully started!", true);
-            while(!done){
-                Socket client = server.accept();
-                ConnectionHandler handler = new ConnectionHandler(client);
-                connctions.add(handler);
-                pool.execute(handler);
-            }
-        }catch (Exception e){
-            logger.echo("Connection error: " + e.getMessage(), true);
-            shutdown();
-        }
-    }*/
-
-    public void broadcast(String message){
+    public void broadcast(String message, String sender){
         for(ConnectionHandler ch: connctions){
-            ch.sendMessage(message);
+            if(!ch.getNickname().equals(sender)) ch.sendMessage(message);
         }
     }
-
     public void shutdown(){
         try{
             done = true;
@@ -119,9 +104,7 @@ public class Server implements Runnable{
             logger.echo("Shutting down error: " + e.getMessage(), true);
             // ignore
         }
-
     }
-
     class ConnectionHandler implements Runnable {
         private Socket client;
         private BufferedReader in;
@@ -131,14 +114,19 @@ public class Server implements Runnable{
         public ConnectionHandler(Socket client) {
             this.client = client;
         }
-
         @Override
         public void run() {
             try {
                 out = new PrintWriter(client.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                out.println("Please enter a nickname: ");
                 nickname = in.readLine();
+
+                activeUsers.add(nickname);
+                String activeClientsUpdate = "/active " + String.join(",", activeUsers);
+                broadcast(nickname + " joined chat", nickname);
+                broadcast(activeClientsUpdate, nickname);
+                sendMessage(activeClientsUpdate);
+
                 logger.echo(nickname + " connected", true);
                 logger.echo(nickname + " joined the chat!", true);
 
@@ -147,34 +135,40 @@ public class Server implements Runnable{
                     if (message.startsWith("/nick ")) {
                         String[] messageSplit = message.split(" ", 2);
                         if (messageSplit.length == 2) {
-                            broadcast(nickname + " renamed themselves to " + messageSplit[1]);
-                            logger.echo(nickname + " renamed themselves to " + messageSplit[1], true);
+                            broadcast(nickname + " changed nickname to:  " + messageSplit[1], nickname);
+                            logger.echo(nickname + " changed nickname to: " + messageSplit[1], true);
                             nickname = messageSplit[1];
                             logger.echo("Successfuly changes nickname to " + nickname, true);
                         } else {
                             logger.echo("No nickname provided!", true);
                         }
                     } else if (message.startsWith("/quit")) {
-                        broadcast(nickname + " left chat");
+                        broadcast(nickname + " left chat", nickname);
                         logger.echo(nickname + " left chat", true);
                         shutdown();
                     } else {
                         //test
                         clLogger.echo(nickname + ": " + message, true);
-                        broadcast(nickname + ": " + message);
+                        broadcast(nickname + ": " + message, nickname);
                     }
                 }
             } catch (IOException e) {
                 shutdown();
             }
         }
-
         public void sendMessage(String message) {
             out.println(message);
         }
-
         public void shutdown() {
             try {
+
+
+                activeUsers.remove(nickname);
+                String activeClientsUpdate = "/active " + String.join(",", activeUsers);
+                broadcast(nickname + " left chat", nickname);
+                broadcast(activeClientsUpdate, nickname);
+
+
                 in.close();
                 out.close();
                 if (!client.isClosed()) {
@@ -184,7 +178,9 @@ public class Server implements Runnable{
                 // ignore
             }
         }
-
+        public String getNickname() {
+            return nickname;
+        }
     }
 
     public static void main(String[] args) {

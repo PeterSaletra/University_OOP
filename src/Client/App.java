@@ -8,22 +8,20 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.sql.Array;
+import java.util.ArrayList;
 
-
-public class App extends JFrame implements ActionListener {
-
-    private RoundedPanel loginSection;
-
+public class App extends JFrame {
     private static JPanel App;
     private RoundedPanel mainSection;
     private JLabel logo;
     private RoundedPanel rightBar;
     private RoundedPanel bottomBarMessagesContainer;
     private RoundedPanel rightBarBottomSection;
-    private JPanel rightBarActiveUsersSection;
+    private static JPanel rightBarActiveUsersSection;
     private RoundedPanel chatSection;
-    private JScrollPane scrollPane;
-    private RoundedPanel messagesContainer;
+    private static JScrollPane scrollPane;
+    private static RoundedPanel messagesContainer;
     private RoundedPanel topBarMessagesContainer;
     private JButton btnIP;
     private JTextField inputIP;
@@ -32,65 +30,54 @@ public class App extends JFrame implements ActionListener {
     private RoundedPanel rightBarUpperBar;
     private RoundedPanel rightPanel;
 
-
+    public String nickname;
+    public Login loginPage;
+    private Client client;
     CardLayout crd;
 
-    boolean sessionExists = false;
-    boolean toggleUserSide = true;
 
     private User[] users = new User[2];
 
     public App() throws IOException {
 
 
-        this.users[0] = new User("krysztalxd294", "online");
-        this.users[1]= new User("jdabrowski", "AFK");
-
         initComponents();
         sendBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendMessage(messageField.getText(),1);
+                client.out.println(messageField.getText());
+                messageField.setText("");
+            }
+        });
+        btnIP.addActionListener(new ActionListener() {
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
                     @Override
                     protected Void doInBackground() throws Exception {
                         Thread.sleep(1);
+                        client = new Client(inputIP.getText(), loginPage.nicknameField.getText());
+                        Thread.sleep(20);
+                        client.run();
+                        Thread.sleep(100);
                         return null;
-                    }
-                    @Override
-                    protected void done() {
-                        if (toggleUserSide){
-                            sendMessage(messageField.getText(),1);
-                            messageField.setText("");
-                            toggleUserSide = false;
-                        }else{
-                            sendMessage(messageField.getText(),2);
-                            messageField.setText("");
-                            toggleUserSide = true;
-                        }
                     }
                 };
                 worker.execute();
             }
         });
-
     }
-    @SuppressWarnings("unchecked")
-
-    private void initLoginCard(){
-
-    }
-
     public static void createPopUpWindow(String message){
         JOptionPane.showMessageDialog(App, message);
     }
-
-
     private void initComponents() throws IOException {
         setTitle("Pickly");
         setResizable(false);
         setSize(new Dimension(905, 720));
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         crd = new CardLayout();
 
         App = new JPanel();
@@ -101,21 +88,6 @@ public class App extends JFrame implements ActionListener {
         btnIP.addActionListener(e -> {
             mainSection.add(Box.createHorizontalStrut(40));
             mainSection.add(rightPanel);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             mainSection.revalidate();
             mainSection.repaint();
         });
@@ -125,22 +97,16 @@ public class App extends JFrame implements ActionListener {
 
         sendBtn = new JButton();
         sendBtn.setText("Send");
-        sendBtn.addActionListener(this::sendBtnActionPerformed);
 
         messageField = new JTextField();
         messageField = new JTextField(20);
-        messageField.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                messageFieldActionPerformed(evt);
-            }
-        });
+
 
         mainSection = new RoundedPanel();
         mainSection.setBackground(new Color(166, 217, 116));
         mainSection.setPreferredSize(new Dimension(905, 603));
         mainSection.setLayout(new BoxLayout(mainSection, BoxLayout.X_AXIS));
         mainSection.setBorder(new EmptyBorder(20,20,20,20));
-
 
         topBarMessagesContainer = new RoundedPanel();
         topBarMessagesContainer.setRoundTopLeft(20);
@@ -166,7 +132,6 @@ public class App extends JFrame implements ActionListener {
         bottomBarMessagesContainer.add(messageField);
         bottomBarMessagesContainer.setPreferredSize(new Dimension(500, 50));
 
-
         chatSection = new RoundedPanel();
         chatSection.setBackground(new Color(255, 255, 255));
         chatSection.setRoundBottomLeft(20);
@@ -179,14 +144,11 @@ public class App extends JFrame implements ActionListener {
         );
         chatSection.setLayout(new BorderLayout());
 
-
         chatSection.add(topBarMessagesContainer, BorderLayout.NORTH);
         scrollPane = new JScrollPane(messagesContainer);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         chatSection.add(scrollPane, BorderLayout.CENTER);
         chatSection.add(bottomBarMessagesContainer, BorderLayout.SOUTH);
-
-
 
         ImageIcon logoIcon = new ImageIcon("src/Client/img/pickleLogo.png");
         logo = new JLabel(logoIcon);
@@ -200,7 +162,6 @@ public class App extends JFrame implements ActionListener {
         rightBar.setRoundTopLeft(20);
         rightBar.setRoundTopRight(20);
 
-
         rightBarUpperBar = new RoundedPanel();
         rightBarUpperBar.setBackground(Color.white);
         rightBarUpperBar.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -210,26 +171,17 @@ public class App extends JFrame implements ActionListener {
         rightBarUpperBar.setRoundBottomLeft(20);
         rightBarUpperBar.setRoundBottomRight(20);
 
-
         rightBarBottomSection = new RoundedPanel();
         rightBarBottomSection.setRoundBottomLeft(20);
         rightBarBottomSection.setRoundBottomRight(20);
 
-
-
         JTextArea activeUsersTextArea = new JTextArea(10, 20);
         activeUsersTextArea.setEditable(false);
-
-        Awatar awatarIcon = new Awatar("src/Client/img/EmptyAwatar.png", 50, 50);
-        JLabel awatarLabel = new JLabel(awatarIcon);
-        awatarLabel.setOpaque(true);
-
 
         rightBarActiveUsersSection = new JPanel();
         rightBarActiveUsersSection.setBackground(new Color(255, 255, 255));
         rightBarActiveUsersSection.setLayout(new BoxLayout(rightBarActiveUsersSection, BoxLayout.Y_AXIS));
-        rightBarActiveUsersSection.add(new UserTile(awatarIcon, users[0]));
-        rightBarActiveUsersSection.add(new UserTile(awatarIcon, users[1]));
+
         rightBarActiveUsersSection.add(Box.createVerticalGlue());
 
         rightBar.add(rightBarUpperBar, BorderLayout.NORTH);
@@ -242,10 +194,10 @@ public class App extends JFrame implements ActionListener {
         leftPanel.setRoundBottomLeft(20);
         leftPanel.setRoundBottomRight(20);
 
+        loginPage = new Login(crd, leftPanel);
         leftPanel.setLayout(crd);
-        leftPanel.add(new Login(crd, leftPanel));
+        leftPanel.add(loginPage);
         leftPanel.add(chatSection);
-
 
         rightPanel = new RoundedPanel();
         rightPanel.setLayout(new BorderLayout());
@@ -260,12 +212,7 @@ public class App extends JFrame implements ActionListener {
         getContentPane().add(App);
         pack();
     }
-
-
-
-
-
-    private void sendMessage(String text, int option) {
+    public static void sendMessage(String text, int option) {
         SwingUtilities.invokeLater(() -> {
             Message messageComponent = new Message(text, option);
             messagesContainer.add(messageComponent);
@@ -273,58 +220,38 @@ public class App extends JFrame implements ActionListener {
             verticalScrollBar.setValue(verticalScrollBar.getMaximum());
             messagesContainer.revalidate();
             messagesContainer.repaint();
-
-
-
-
         });
     }
 
-    private void showActiveUsers(){
+    public static void updateActiveUsersPanel(String[] activeUsers) throws IOException {
 
-    }
+        Awatar awatarIcon = new Awatar("src/Client/img/EmptyAwatar.png", 50, 50);
+        JLabel awatarLabel = new JLabel(awatarIcon);
+        awatarLabel.setOpaque(true);
 
+        //clearing Users before displaying updated list
+        for(Component com: rightBarActiveUsersSection.getComponents()){
+            if (com instanceof UserTile){
+                rightBarActiveUsersSection.remove(com);
+            }
+        }
+        rightBarActiveUsersSection.revalidate();
+        rightBarActiveUsersSection.repaint();
 
+        //updating components
+        for (String activeUser : activeUsers) {
+            User newUser = new User(activeUser, "online");
+            rightBarActiveUsersSection.add(new UserTile(awatarIcon, newUser));
+        }
 
-    private void messageFieldActionPerformed(ActionEvent evt) {
-
-    }
-
-    private void sendBtnActionPerformed(ActionEvent evt) {
-
-    }
-
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
+        rightBarActiveUsersSection.revalidate();
+        rightBarActiveUsersSection.repaint();
 
     }
 
     public static void main(String args[]) throws IOException {
-
-
-
         App app = new App();
         app.setVisible(true);
-
-        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-            @Override
-            protected Void doInBackground() throws Exception {
-                Thread.sleep(1);
-                Client client = new Client();
-                client.run();
-                return null;
-            }
-            @Override
-            protected void done() {
-
-            }
-        };
-        worker.execute();
-
-
-
-
     }
 }
 
