@@ -10,11 +10,10 @@ public class Client implements  Serializable, Runnable  {
     public BufferedReader in;
     public PrintWriter out;
     private boolean done;
-    transient private ClientLogger logger = new ClientLogger("client_log.txt");
     private String host;
     private int port;
     public String nickname;
-    private String[] activeClients;
+    transient private String[] activeClients;
 
 
     Client() {
@@ -32,7 +31,6 @@ public class Client implements  Serializable, Runnable  {
             this.port = Integer.parseInt(con[1]);
         } catch (Exception e) {
             App.createPopUpWindow(e.getMessage());
-            logger.echo("Incorrect connection data " + e.getMessage(), true);
         }
     }
 
@@ -60,7 +58,6 @@ public class Client implements  Serializable, Runnable  {
 
                                 String clientsList = message.substring("/active ".length());
                                 activeClients = clientsList.split(",");
-                                logger.echo("Active clients updated: " + Arrays.toString(activeClients), true);
 
 
                                 App.updateActiveUsersPanel(activeClients);
@@ -84,7 +81,6 @@ public class Client implements  Serializable, Runnable  {
 
                     String clientsList = inMessage.substring("/active ".length());
                     activeClients = clientsList.split(",");
-                    logger.echo("Active clients updated: " + Arrays.toString(activeClients), true);
 
 
                     App.updateActiveUsersPanel(activeClients);
@@ -123,7 +119,6 @@ public class Client implements  Serializable, Runnable  {
 
         out.close();
         fileOut.close();
-        logger.echo("Client info saved to file!", true);
     }
 
     public void deserialize(String filepath) throws IOException, ClassNotFoundException {
@@ -136,15 +131,12 @@ public class Client implements  Serializable, Runnable  {
         this.in = deserializedClient.in;
         this.out = deserializedClient.out;
         this.done = deserializedClient.done;
-        this.logger = deserializedClient.logger;
         this.host = deserializedClient.host;
         this.port = deserializedClient.port;
         this.nickname = deserializedClient.nickname;
-        this.activeClients = deserializedClient.activeClients;
 
         in.close();
         fileIn.close();
-        logger.echo("Client info read from file!", true);
     }
 }
 
