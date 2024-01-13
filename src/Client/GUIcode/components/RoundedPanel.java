@@ -122,14 +122,4 @@ public class RoundedPanel extends JPanel {
         return area;
     }
 
-//    public void add(RoundedPanel panel) {
-//        Container cPane = getRootPane().getContentPane();
-//        System.out.println(cPane);
-//        cPane.setLayout(new CardLayout());
-//        cPane.add(panel);
-//    }
-
-//    public void add(CardLayout loginCard, String center) {
-//
-//    }
 }

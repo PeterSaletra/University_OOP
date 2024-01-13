@@ -1,17 +1,17 @@
 package src.Client;
 
 import src.Client.GUIcode.components.*;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.sql.Array;
-import java.util.ArrayList;
+import java.io.Serializable;
 
-public class App extends JFrame {
+public class App extends JFrame implements Serializable {
     private static JPanel App;
     private RoundedPanel mainSection;
     private JLabel logo;
@@ -23,24 +23,17 @@ public class App extends JFrame {
     private static JScrollPane scrollPane;
     private static RoundedPanel messagesContainer;
     private RoundedPanel topBarMessagesContainer;
-    private JButton btnIP;
-    private JTextField inputIP;
+    public JButton btnIP;
+    public JTextField inputIP;
     private static JButton sendBtn;
     private static JTextField messageField;
     private RoundedPanel rightBarUpperBar;
     private RoundedPanel rightPanel;
-
-    public String nickname;
     public Login loginPage;
-    private Client client;
+    public Client client;
     CardLayout crd;
-
-
     private User[] users = new User[2];
-
     public App() throws IOException {
-
-
         initComponents();
         sendBtn.addActionListener(new ActionListener() {
             @Override
@@ -51,7 +44,6 @@ public class App extends JFrame {
             }
         });
         btnIP.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
@@ -76,13 +68,29 @@ public class App extends JFrame {
         setTitle("Pickly");
         setResizable(false);
         setSize(new Dimension(905, 720));
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                // Perform your action here
+                int confirmed = JOptionPane.showConfirmDialog(null,
+                        "Are you sure you want to exit the program?", "Exit Program",
+                        JOptionPane.YES_NO_OPTION);
+
+                if (confirmed == JOptionPane.YES_OPTION) {
+                    try {
+                        Client.serialize("lastSession.txt", client);
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    dispose();
+                }
+            }
+        });
         crd = new CardLayout();
-
         App = new JPanel();
         App.setPreferredSize(new Dimension(905, 680));
-
         btnIP = new JButton();
         btnIP = new JButton("Connect");
         btnIP.addActionListener(e -> {
@@ -100,7 +108,6 @@ public class App extends JFrame {
 
         messageField = new JTextField();
         messageField = new JTextField(20);
-
 
         mainSection = new RoundedPanel();
         mainSection.setBackground(new Color(166, 217, 116));
@@ -194,7 +201,7 @@ public class App extends JFrame {
         leftPanel.setRoundBottomLeft(20);
         leftPanel.setRoundBottomRight(20);
 
-        loginPage = new Login(crd, leftPanel);
+        loginPage = new Login(crd, leftPanel, this);
         leftPanel.setLayout(crd);
         leftPanel.add(loginPage);
         leftPanel.add(chatSection);
@@ -248,7 +255,6 @@ public class App extends JFrame {
         rightBarActiveUsersSection.repaint();
 
     }
-
     public static void main(String args[]) throws IOException {
         App app = new App();
         app.setVisible(true);

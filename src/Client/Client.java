@@ -1,27 +1,18 @@
 package src.Client;
-import src.Logger.ClientLogger;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Arrays;
 
 public class Client implements  Serializable, Runnable  {
-    private Socket client;
-    public BufferedReader in;
-    public PrintWriter out;
+
+    transient public Socket client;
+    transient public BufferedReader in;
+    transient public PrintWriter out;
     private boolean done;
-    private String host;
-    private int port;
+    public String host;
+    public int port;
     public String nickname;
     transient private String[] activeClients;
-
-
-    Client() {
-        this.host = "127.0.0.1";
-        this.port = 9999;
-        this.nickname = "Anonymous";
-    }
-
     Client(String connection, String nickname) {
         this.nickname = nickname;
         try {
@@ -40,7 +31,6 @@ public class Client implements  Serializable, Runnable  {
             client = new Socket(host, port);
             out = new PrintWriter(client.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-
             out.println(nickname);
 
             Thread inputThread = new Thread(new Runnable() {
@@ -58,13 +48,8 @@ public class Client implements  Serializable, Runnable  {
 
                                 String clientsList = message.substring("/active ".length());
                                 activeClients = clientsList.split(",");
-
-
                                 App.updateActiveUsersPanel(activeClients);
-
-
                             } else {
-
                                 out.println(message);
                             }
                         }
@@ -78,13 +63,9 @@ public class Client implements  Serializable, Runnable  {
             String inMessage;
             while ((inMessage = in.readLine()) != null) {
                 if (inMessage.startsWith("/active ")) {
-
                     String clientsList = inMessage.substring("/active ".length());
                     activeClients = clientsList.split(",");
-
-
                     App.updateActiveUsersPanel(activeClients);
-
                 } else {
                     App.sendMessage(inMessage, 2);
                 }
@@ -107,36 +88,27 @@ public class Client implements  Serializable, Runnable  {
             // ignore
         }
     }
-
     public BufferedReader getIn() {
         return in;
     }
 
-    public void serialize(String filename) throws IOException {
+    public static void serialize(String filename, Object object) throws IOException {
         FileOutputStream fileOut = new FileOutputStream(filename);
         ObjectOutputStream out = new ObjectOutputStream(fileOut);
-        out.writeObject(this);
+        out.writeObject(object);
 
         out.close();
         fileOut.close();
     }
-
-    public void deserialize(String filepath) throws IOException, ClassNotFoundException {
+    public static Client deserialize(String filepath) throws IOException, ClassNotFoundException {
         FileInputStream fileIn = new FileInputStream(filepath);
         ObjectInputStream in = new ObjectInputStream(fileIn);
 
         Client deserializedClient = (Client) in.readObject();
 
-        this.client = deserializedClient.client;
-        this.in = deserializedClient.in;
-        this.out = deserializedClient.out;
-        this.done = deserializedClient.done;
-        this.host = deserializedClient.host;
-        this.port = deserializedClient.port;
-        this.nickname = deserializedClient.nickname;
-
         in.close();
         fileIn.close();
+        return deserializedClient;
     }
 }
 

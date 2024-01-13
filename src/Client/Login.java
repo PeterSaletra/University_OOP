@@ -1,32 +1,32 @@
 package src.Client;
 
-
 import src.Client.GUIcode.components.*;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.RoundRectangle2D;
+import java.io.*;
 
-
-public class Login extends RoundedPanel implements ActionListener {
+public class Login extends RoundedPanel{
     private final int PADDING = 10;
     private final int MARGIN = 10;
     private final int ARC = 20;
     private static final int LINE_SIZE = 30;
     public  RoundedPanel nicknameInput;
-    public RoundedTextField nicknameField;
-
-//    private RoundedPanel passwordInput;
+    public Placeholder nicknameField;
+    private RoundedPanel passwordInput;
     private RoundedButton sendButton;
+    private RoundedButton restoreLastSessionButton;
     public RoundedPanel finalLoginComponent;
+    private App appReference;
 
-    public Login(CardLayout crd, RoundedPanel leftPanel) {
+    public Login(CardLayout crd, RoundedPanel leftPanel, App app) throws IOException {
+        this.appReference = app;
         createLoginInput();
-//        createPasswordInput();
         createSendButton();
+        createRestoreSessionButton();
         createLoginCard();
         setOpaque(false);
         sendButton.addActionListener(new ActionListener() {
@@ -35,14 +35,34 @@ public class Login extends RoundedPanel implements ActionListener {
                 crd.next(leftPanel);
             }
         });
+
+        restoreLastSessionButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                Client deserializedClient;
+                try {
+                    deserializedClient = Client.deserialize("lastSession.txt");
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                } catch (ClassNotFoundException ex) {
+                    throw new RuntimeException(ex);
+                }
+
+                nicknameField.setText(deserializedClient.nickname);
+                app.inputIP.setText(deserializedClient.host + ":" + deserializedClient.port);
+                crd.next(leftPanel);
+                app.btnIP.doClick();
+            }
+        });
+
     }
     private void createLoginInput(){
         nicknameInput = new RoundedPanel();
         nicknameInput.setPreferredSize(new Dimension(200, 50));
         nicknameInput.setBackground(new Color(166,217,116));
         nicknameInput.setRoundCorners(50);
-
-        nicknameField = new RoundedTextField();
+        nicknameField = new Placeholder("Nickname");
         nicknameField.setRoundBottomLeft(45);
         nicknameField.setRoundBottomRight(45);
         nicknameField.setRoundTopLeft(45);
@@ -51,28 +71,10 @@ public class Login extends RoundedPanel implements ActionListener {
         nicknameField.setHorizontalAlignment(JTextField.CENTER);
         nicknameField.setBorder(BorderFactory.createEmptyBorder());
         nicknameField.setFont(new Font(Font.SANS_SERIF,Font.PLAIN,20));
+        nicknameField.getCaret().setBlinkRate(0);
+        nicknameField.setCaretColor(nicknameField.getBackground());
         nicknameInput.add(nicknameField);
     }
-
-//    private void createPasswordInput(){
-//        passwordInput = new RoundedPanel();
-//        passwordInput.setPreferredSize(new Dimension(200, 50));
-//        passwordInput.setBackground(new Color(166,217,116));
-//        passwordInput.setRoundCorners(50);
-//
-//
-//        RoundedTextField textField = new RoundedTextField();
-//        textField.setRoundBottomLeft(45);
-//        textField.setRoundBottomRight(45);
-//        textField.setRoundTopLeft(45);
-//        textField.setRoundTopRight(45);
-//
-//        textField.setPreferredSize(new Dimension(190,40));
-//        textField.setHorizontalAlignment(JTextField.CENTER);
-//        textField.setBorder(BorderFactory.createEmptyBorder());
-//        textField.setFont(new Font(Font.SANS_SERIF,Font.PLAIN,20));
-//        passwordInput.add(textField);
-//    }
 
     private void createSendButton(){
         sendButton = new RoundedButton();
@@ -81,6 +83,15 @@ public class Login extends RoundedPanel implements ActionListener {
         sendButton.setRoundTopRight(20);
         sendButton.setRoundBottomRight(20);
         sendButton.setLabel("Sign in");
+    }
+
+    private void createRestoreSessionButton(){
+        restoreLastSessionButton = new RoundedButton();
+        restoreLastSessionButton.setRoundBottomLeft(20);
+        restoreLastSessionButton.setRoundTopLeft(20);
+        restoreLastSessionButton.setRoundTopRight(20);
+        restoreLastSessionButton.setRoundBottomRight(20);
+        restoreLastSessionButton.setLabel("Restore last session");
     }
 
     @Override
@@ -104,6 +115,10 @@ public class Login extends RoundedPanel implements ActionListener {
 
         this.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
         this.setBackground(Color.WHITE);
+
+        System.out.println("WIDTH: " + this.getSize().height);
+        System.out.println("HEIGHT: " + this);
+
         this.setBorder(new EmptyBorder(PADDING, PADDING, PADDING, PADDING));
         this.setRoundCorners(20);
 
@@ -111,21 +126,18 @@ public class Login extends RoundedPanel implements ActionListener {
         c.gridy = 0;
         this.add(nicknameInput, c);
 
-//        c.gridx = 0;
-//        c.gridy = 1;
-//        this.add(passwordInput, c);
-
         c.gridx = 0;
         c.gridy = 3;
         c.gridwidth = 2;
         c.anchor = GridBagConstraints.CENTER;
         this.add(sendButton, c);
 
+        c.gridx = 0;
+        c.gridy = 4;
+        c.gridwidth = 2;
+        c.anchor = GridBagConstraints.CENTER;
+        this.add(restoreLastSessionButton, c);
 
         this.finalLoginComponent= this;
-    }
-    @Override
-    public void actionPerformed(ActionEvent e) {
-
     }
 }
