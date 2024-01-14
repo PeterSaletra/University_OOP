@@ -21,7 +21,6 @@ public class Server implements Runnable{
         done = false;
         connctions = new ArrayList<>();
         activeUsers= new ArrayList<>();
-        logger = new ServerLogger("server_Log.txt");
         logger = new ServerLogger();
         clLogger = new ClientLogger ();
         port = 9999;
@@ -31,7 +30,6 @@ public class Server implements Runnable{
         done = false;
         connctions = new ArrayList<>();
         activeUsers= new ArrayList<>();
-        logger = new ServerLogger("server_Log.txt");
         logger = new ServerLogger();
         clLogger = new ClientLogger ();
         this.port = port;
@@ -114,6 +112,7 @@ public class Server implements Runnable{
         public ConnectionHandler(Socket client) {
             this.client = client;
         }
+
         @Override
         public void run() {
             try {
@@ -161,13 +160,10 @@ public class Server implements Runnable{
         }
         public void shutdown() {
             try {
-
-
                 activeUsers.remove(nickname);
                 String activeClientsUpdate = "/active " + String.join(",", activeUsers);
                 broadcast(nickname + " left chat", nickname);
                 broadcast(activeClientsUpdate, nickname);
-
 
                 in.close();
                 out.close();
