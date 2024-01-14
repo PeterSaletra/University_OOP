@@ -18,7 +18,6 @@ public class RoundBorder extends AbstractBorder {
         this.thickness = thickness;
         this.radius = radius;
     }
-
     @Override
     public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
         super.paintBorder(c, g, x, y, width, height);
@@ -29,12 +28,10 @@ public class RoundBorder extends AbstractBorder {
         g2d.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
         g2d.dispose();
     }
-
     @Override
     public Insets getBorderInsets(Component c) {
         return new Insets(thickness, thickness, thickness, thickness);
     }
-
     @Override
     public Insets getBorderInsets(Component c, Insets insets) {
         insets.set(thickness, thickness, thickness, thickness);

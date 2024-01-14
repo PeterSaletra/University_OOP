@@ -2,13 +2,12 @@ package src.Client;
 
 import java.io.*;
 import java.net.Socket;
-
 public class Client implements  Serializable, Runnable  {
 
     transient public Socket client;
     transient public BufferedReader in;
     transient public PrintWriter out;
-    private boolean done;
+    boolean done;
     public String host;
     public int port;
     public String nickname;
@@ -21,10 +20,9 @@ public class Client implements  Serializable, Runnable  {
             this.host = con[0];
             this.port = Integer.parseInt(con[1]);
         } catch (Exception e) {
-            App.createPopUpWindow(e.getMessage());
+            App.createPopUpWindow("Failed connection to server");
         }
     }
-
     @Override
     public void run() {
         try {
@@ -32,12 +30,13 @@ public class Client implements  Serializable, Runnable  {
             out = new PrintWriter(client.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(client.getInputStream()));
             out.println(nickname);
-
             Thread inputThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         BufferedReader inReader = new BufferedReader(new InputStreamReader(System.in));
+
+
                         while (!done) {
                             String message = inReader.readLine();
                             if (message.equals("/quit")) {
@@ -74,7 +73,6 @@ public class Client implements  Serializable, Runnable  {
             shutdown();
         }
     }
-
     public void shutdown() {
         done = true;
         try {
@@ -105,7 +103,6 @@ public class Client implements  Serializable, Runnable  {
         ObjectInputStream in = new ObjectInputStream(fileIn);
 
         Client deserializedClient = (Client) in.readObject();
-
         in.close();
         fileIn.close();
         return deserializedClient;
