@@ -120,7 +120,9 @@ public class Server implements Runnable{
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
                 nickname = in.readLine();
 
-                activeUsers.add(nickname);
+                if (!activeUsers.contains(nickname)){
+                    activeUsers.add(nickname);
+                }
                 String activeClientsUpdate = "/active " + String.join(",", activeUsers);
                 broadcast(nickname + " joined chat", nickname);
                 broadcast(activeClientsUpdate, nickname);
@@ -142,17 +144,15 @@ public class Server implements Runnable{
                             logger.echo("No nickname provided!", true);
                         }
                     } else if (message.startsWith("/quit")) {
-                        broadcast(nickname + " left chat", nickname);
                         logger.echo(nickname + " left chat", true);
                         shutdown();
                     } else {
-                        //test
                         clLogger.echo(nickname + ": " + message, true);
                         broadcast(nickname + ": " + message, nickname);
                     }
                 }
             } catch (IOException e) {
-                shutdown();
+               // ignore
             }
         }
         public void sendMessage(String message) {
@@ -178,7 +178,6 @@ public class Server implements Runnable{
             return nickname;
         }
     }
-
     public static void main(String[] args) {
         Server server = new Server();
         server.run();

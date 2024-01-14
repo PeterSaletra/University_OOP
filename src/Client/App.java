@@ -2,16 +2,16 @@ package src.Client;
 
 import src.Client.GUIcode.components.*;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.io.Serializable;
 
-public class App extends JFrame implements Serializable {
+
+public class App extends JFrame {
     private static JPanel App;
     private RoundedPanel mainSection;
     private JLabel logo;
@@ -25,36 +25,77 @@ public class App extends JFrame implements Serializable {
     private RoundedPanel topBarMessagesContainer;
     public JButton btnIP;
     public JTextField inputIP;
+
+    private JButton disconnectIP;
     private static JButton sendBtn;
     private static JTextField messageField;
     private RoundedPanel rightBarUpperBar;
     private RoundedPanel rightPanel;
     public Login loginPage;
-    public Client client;
+    public Client client = null;
     CardLayout crd;
-    private User[] users = new User[2];
     public App() throws IOException {
         initComponents();
         sendBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (messageField.getText().isEmpty()){return;}
                 sendMessage(messageField.getText(),1);
-                client.out.println(messageField.getText());
+                try{
+                    client.out.println(messageField.getText());
+                }catch (NullPointerException err){
+                    createPopUpWindow("Connection is down");
+                }
                 messageField.setText("");
             }
         });
         btnIP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                SwingWorker<Void, Void> worker = new SwingWorker<>() {
                     @Override
-                    protected Void doInBackground() throws Exception {
-                        Thread.sleep(1);
-                        client = new Client(inputIP.getText(), loginPage.nicknameField.getText());
-                        Thread.sleep(20);
-                        client.run();
-                        Thread.sleep(100);
-                        return null;
+                    protected Void doInBackground() {
+                        SwingWorker<Void,Void> internalWorker = new SwingWorker<Void, Void>() {
+                            @Override
+                            protected Void doInBackground() throws Exception {
+
+                                client = new Client(inputIP.getText(), loginPage.nicknameField.getText());
+                                client.run();
+                                return null;
+                            }
+                            @Override
+                            protected void done() {
+                                topBarMessagesContainer.remove(disconnectIP);
+                                btnIP.setEnabled(true);
+                            }
+                        };
+                        internalWorker.execute();
+                       return null;
+                    }
+
+                    @Override
+                    protected void done() {
+                        if (client != null && client.client != null && client.client.isConnected()) {
+                            addRightPanel();
+                            topBarMessagesContainer.add(disconnectIP);
+                            btnIP.setEnabled(false);
+                            disconnectIP.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    String message = "/quit";
+                                    client.out.println(message);
+                                    client = null;
+                                    btnIP.setEnabled(true);
+                                    inputIP.setText("");
+                                    topBarMessagesContainer.remove(disconnectIP);
+                                    topBarMessagesContainer.revalidate();
+                                    topBarMessagesContainer.repaint();
+                                    clearActiveUsersPanel();
+                                }
+                            });
+                        } else {
+                            System.out.println("Client is not initialized or not connected.");
+                        }
                     }
                 };
                 worker.execute();
@@ -73,12 +114,13 @@ public class App extends JFrame implements Serializable {
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                // Perform your action here
                 int confirmed = JOptionPane.showConfirmDialog(null,
                         "Are you sure you want to exit the program?", "Exit Program",
                         JOptionPane.YES_NO_OPTION);
-
                 if (confirmed == JOptionPane.YES_OPTION) {
+                    String message = "/quit";
+                    client.out.println(message);
+                    client = null;
                     try {
                         Client.serialize("lastSession.txt", client);
                     } catch (IOException ex) {
@@ -93,12 +135,8 @@ public class App extends JFrame implements Serializable {
         App.setPreferredSize(new Dimension(905, 680));
         btnIP = new JButton();
         btnIP = new JButton("Connect");
-        btnIP.addActionListener(e -> {
-            mainSection.add(Box.createHorizontalStrut(40));
-            mainSection.add(rightPanel);
-            mainSection.revalidate();
-            mainSection.repaint();
-        });
+
+        disconnectIP = new JButton("Disconnect");
 
         inputIP = new JTextField();
         inputIP = new JTextField(10);
@@ -147,8 +185,8 @@ public class App extends JFrame implements Serializable {
         chatSection.setRoundTopRight(20);
         chatSection.setBorder(BorderFactory.createCompoundBorder(
                 new EmptyBorder(20,20,20,20),
-                new RoundBorder(Color.black, 1, 20)                )
-        );
+                new RoundBorder(Color.black, 1, 20)
+                ));
         chatSection.setLayout(new BorderLayout());
 
         chatSection.add(topBarMessagesContainer, BorderLayout.NORTH);
@@ -220,14 +258,36 @@ public class App extends JFrame implements Serializable {
         pack();
     }
     public static void sendMessage(String text, int option) {
-        SwingUtilities.invokeLater(() -> {
+
             Message messageComponent = new Message(text, option);
             messagesContainer.add(messageComponent);
             JScrollBar verticalScrollBar = scrollPane.getVerticalScrollBar();
             verticalScrollBar.setValue(verticalScrollBar.getMaximum());
             messagesContainer.revalidate();
             messagesContainer.repaint();
+
+    }
+
+
+    public void addRightPanel(){
+        SwingUtilities.invokeLater(()->{
+            //mainSection.add(Box.createHorizontalStrut(40));
+            mainSection.add(rightPanel);
+            mainSection.revalidate();
+            mainSection.repaint();
         });
+    }
+
+
+
+    public static void clearActiveUsersPanel(){
+        for(Component com: rightBarActiveUsersSection.getComponents()){
+            if (com instanceof UserTile){
+                rightBarActiveUsersSection.remove(com);
+            }
+        }
+        rightBarActiveUsersSection.revalidate();
+        rightBarActiveUsersSection.repaint();
     }
 
     public static void updateActiveUsersPanel(String[] activeUsers) throws IOException {
@@ -237,13 +297,7 @@ public class App extends JFrame implements Serializable {
         awatarLabel.setOpaque(true);
 
         //clearing Users before displaying updated list
-        for(Component com: rightBarActiveUsersSection.getComponents()){
-            if (com instanceof UserTile){
-                rightBarActiveUsersSection.remove(com);
-            }
-        }
-        rightBarActiveUsersSection.revalidate();
-        rightBarActiveUsersSection.repaint();
+        clearActiveUsersPanel();
 
         //updating components
         for (String activeUser : activeUsers) {

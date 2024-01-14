@@ -116,9 +116,6 @@ public class Login extends RoundedPanel{
         this.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
         this.setBackground(Color.WHITE);
 
-        System.out.println("WIDTH: " + this.getSize().height);
-        System.out.println("HEIGHT: " + this);
-
         this.setBorder(new EmptyBorder(PADDING, PADDING, PADDING, PADDING));
         this.setRoundCorners(20);
 

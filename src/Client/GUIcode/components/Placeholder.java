@@ -1,9 +1,7 @@
 package src.Client.GUIcode.components;
 
 import java.awt.*;
-import javax.swing.*;
 
-@SuppressWarnings("serial")
 public class Placeholder extends RoundedTextField {
     private String placeholder;
     private final int TEXT_OFFSET = 20;
@@ -11,7 +9,6 @@ public class Placeholder extends RoundedTextField {
 
     public Placeholder(String text) {
         this.setPlaceholder("Nickname");
-
         this.finalPlaceholderComponent = this;
     }
     public String getPlaceholder() {
@@ -21,9 +18,7 @@ public class Placeholder extends RoundedTextField {
     protected void paintComponent(final Graphics pG) {
         super.paintComponent(pG);
 
-        if (placeholder == null || placeholder.isEmpty() || !getText().isEmpty()) {
-            return;
-        }
+        if (placeholder == null || placeholder.isEmpty() || !getText().isEmpty()) return;
 
         final Graphics2D g = (Graphics2D) pG;
         g.setRenderingHint(
