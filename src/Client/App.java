@@ -4,113 +4,92 @@ import src.Client.GUIcode.components.*;
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 
-
 public class App extends JFrame {
     private static JPanel App;
     private RoundedPanel mainSection;
-    private JLabel logo;
-    private RoundedPanel rightBar;
-    private RoundedPanel bottomBarMessagesContainer;
-    private RoundedPanel rightBarBottomSection;
     private static JPanel rightBarActiveUsersSection;
-    private RoundedPanel chatSection;
     private static JScrollPane scrollPane;
     private static RoundedPanel messagesContainer;
     private RoundedPanel topBarMessagesContainer;
-    public JButton btnIP;
-    public JTextField inputIP;
-
+    private JButton btnIP;
+    private JTextField inputIP;
     private JButton disconnectIP;
     private static JButton sendBtn;
     private static JTextField messageField;
-    private RoundedPanel rightBarUpperBar;
     private RoundedPanel rightPanel;
-    public Login loginPage;
-    public Client client = null;
-    CardLayout crd;
-    public App() throws IOException {
+    private Login loginPage;
+    private Client clientGUI = null;
+
+    public App() {
         initComponents();
-        sendBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (messageField.getText().isEmpty()){return;}
-                sendMessage(messageField.getText(),1);
-                try{
-                    client.out.println(messageField.getText());
-                }catch (NullPointerException err){
-                    createPopUpWindow("Connection is down");
-                }
-                messageField.setText("");
+        sendBtn.addActionListener(e -> {
+            if (messageField.getText().isEmpty()){return;}
+            sendMessage(messageField.getText(),1);
+            try{
+                clientGUI.getOut().println(messageField.getText());
+            }catch (NullPointerException err){
+                createPopUpWindow("Connection is down");
             }
+            messageField.setText("");
         });
-        btnIP.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                SwingWorker<Void, Void> worker = new SwingWorker<>() {
-                    @Override
-                    protected Void doInBackground() {
-                        SwingWorker<Void,Void> internalWorker = new SwingWorker<Void, Void>() {
-                            @Override
-                            protected Void doInBackground() throws Exception {
+        btnIP.addActionListener(e -> {
+            SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() {
+                    SwingWorker<Void,Void> internalWorker = new SwingWorker<>() {
+                        @Override
+                        protected Void doInBackground() {
 
-                                client = new Client(inputIP.getText(), loginPage.nicknameField.getText());
-                                client.run();
-                                return null;
-                            }
-                            @Override
-                            protected void done() {
-                                topBarMessagesContainer.remove(disconnectIP);
-                                btnIP.setEnabled(true);
-                            }
-                        };
-                        internalWorker.execute();
-                       return null;
-                    }
-
-                    @Override
-                    protected void done() {
-                        if (client != null && client.client != null && client.client.isConnected()) {
-                            addRightPanel();
-                            topBarMessagesContainer.add(disconnectIP);
-                            btnIP.setEnabled(false);
-                            disconnectIP.addActionListener(new ActionListener() {
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-                                    String message = "/quit";
-                                    client.out.println(message);
-                                    client = null;
-                                    btnIP.setEnabled(true);
-                                    inputIP.setText("");
-                                    topBarMessagesContainer.remove(disconnectIP);
-                                    topBarMessagesContainer.revalidate();
-                                    topBarMessagesContainer.repaint();
-                                    clearActiveUsersPanel();
-                                }
-                            });
-                        } else {
-                            System.out.println("Client is not initialized or not connected.");
+                            clientGUI = new Client(inputIP.getText(), loginPage.getNicknameField().getText());
+                            clientGUI.run();
+                            return null;
                         }
+                        @Override
+                        protected void done() {
+                            topBarMessagesContainer.remove(disconnectIP);
+                            btnIP.setEnabled(true);
+                        }
+                    };
+                    internalWorker.execute();
+                   return null;
+                }
+                @Override
+                protected void done() {
+                    if (clientGUI != null && clientGUI.getClient() != null && clientGUI.getClient().isConnected()) {
+                        addRightPanel();
+                        topBarMessagesContainer.add(disconnectIP);
+                        btnIP.setEnabled(false);
+                        disconnectIP.addActionListener(e1 -> {
+                            String message = "/quit";
+                            clientGUI.getOut().println(message);
+                            clientGUI = null;
+                            btnIP.setEnabled(true);
+                            inputIP.setText("");
+                            topBarMessagesContainer.remove(disconnectIP);
+                            topBarMessagesContainer.revalidate();
+                            topBarMessagesContainer.repaint();
+                            clearActiveUsersPanel();
+                        });
+                    } else {
+                        System.out.println("Client is not initialized or not connected.");
                     }
-                };
-                worker.execute();
-            }
+                }
+            };
+            worker.execute();
         });
     }
     public static void createPopUpWindow(String message){
         JOptionPane.showMessageDialog(App, message);
     }
-    private void initComponents() throws IOException {
+    private void initComponents() {
         setTitle("Pickly");
         setResizable(false);
         setSize(new Dimension(905, 720));
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -118,19 +97,25 @@ public class App extends JFrame {
                         "Are you sure you want to exit the program?", "Exit Program",
                         JOptionPane.YES_NO_OPTION);
                 if (confirmed == JOptionPane.YES_OPTION) {
-                    String message = "/quit";
-                    client.out.println(message);
-                    client = null;
-                    try {
-                        Client.serialize("lastSession.txt", client);
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
+                    if (clientGUI == null){
+                        dispose();
+                    }else{
+                        String message = "/quit";
+                        clientGUI.getOut().println(message);
+                        try {
+                            Client.serialize("lastSession.txt", clientGUI);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                        clientGUI = null;
+                        dispose();
                     }
-                    dispose();
+
+
                 }
             }
         });
-        crd = new CardLayout();
+        CardLayout crd = new CardLayout();
         App = new JPanel();
         App.setPreferredSize(new Dimension(905, 680));
         btnIP = new JButton();
@@ -169,15 +154,14 @@ public class App extends JFrame {
         messagesContainer.setRoundBottomRight(20);
         messagesContainer.setLayout(new BoxLayout(messagesContainer, BoxLayout.Y_AXIS));
 
-        bottomBarMessagesContainer = new RoundedPanel();
+        RoundedPanel bottomBarMessagesContainer = new RoundedPanel();
         bottomBarMessagesContainer.setRoundBottomLeft(20);
         bottomBarMessagesContainer.setRoundBottomRight(20);
         bottomBarMessagesContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
         bottomBarMessagesContainer.add(sendBtn);
         bottomBarMessagesContainer.add(messageField);
         bottomBarMessagesContainer.setPreferredSize(new Dimension(500, 50));
-
-        chatSection = new RoundedPanel();
+        RoundedPanel chatSection = new RoundedPanel();
         chatSection.setBackground(new Color(255, 255, 255));
         chatSection.setRoundBottomLeft(20);
         chatSection.setRoundBottomRight(20);
@@ -196,10 +180,10 @@ public class App extends JFrame {
         chatSection.add(bottomBarMessagesContainer, BorderLayout.SOUTH);
 
         ImageIcon logoIcon = new ImageIcon("src/Client/img/pickleLogo.png");
-        logo = new JLabel(logoIcon);
+        JLabel logo = new JLabel(logoIcon);
         logo.setOpaque(true);
 
-        rightBar = new RoundedPanel();
+        RoundedPanel rightBar = new RoundedPanel();
         rightBar.setLayout(new BorderLayout());
         rightBar.setBackground(new Color(255, 255, 255));
         rightBar.setRoundBottomLeft(20);
@@ -207,7 +191,7 @@ public class App extends JFrame {
         rightBar.setRoundTopLeft(20);
         rightBar.setRoundTopRight(20);
 
-        rightBarUpperBar = new RoundedPanel();
+        RoundedPanel rightBarUpperBar = new RoundedPanel();
         rightBarUpperBar.setBackground(Color.white);
         rightBarUpperBar.setLayout(new FlowLayout(FlowLayout.CENTER));
         rightBarUpperBar.add(logo, BorderLayout.CENTER);
@@ -216,7 +200,7 @@ public class App extends JFrame {
         rightBarUpperBar.setRoundBottomLeft(20);
         rightBarUpperBar.setRoundBottomRight(20);
 
-        rightBarBottomSection = new RoundedPanel();
+        RoundedPanel rightBarBottomSection = new RoundedPanel();
         rightBarBottomSection.setRoundBottomLeft(20);
         rightBarBottomSection.setRoundBottomRight(20);
 
@@ -267,8 +251,6 @@ public class App extends JFrame {
             messagesContainer.repaint();
 
     }
-
-
     public void addRightPanel(){
         SwingUtilities.invokeLater(()->{
             //mainSection.add(Box.createHorizontalStrut(40));
@@ -277,8 +259,6 @@ public class App extends JFrame {
             mainSection.repaint();
         });
     }
-
-
 
     public static void clearActiveUsersPanel(){
         for(Component com: rightBarActiveUsersSection.getComponents()){
@@ -296,10 +276,8 @@ public class App extends JFrame {
         JLabel awatarLabel = new JLabel(awatarIcon);
         awatarLabel.setOpaque(true);
 
-        //clearing Users before displaying updated list
         clearActiveUsersPanel();
 
-        //updating components
         for (String activeUser : activeUsers) {
             User newUser = new User(activeUser, "online");
             rightBarActiveUsersSection.add(new UserTile(awatarIcon, newUser));
@@ -309,7 +287,14 @@ public class App extends JFrame {
         rightBarActiveUsersSection.repaint();
 
     }
-    public static void main(String args[]) throws IOException {
+    public JButton getBtnIP() {
+        return btnIP;
+    }
+    public JTextField getInputIP() {
+        return inputIP;
+    }
+
+    public static void main(String[] args) {
         App app = new App();
         app.setVisible(true);
     }

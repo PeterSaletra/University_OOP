@@ -4,8 +4,7 @@ import src.Client.GUIcode.components.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
 import java.awt.geom.RoundRectangle2D;
 import java.io.*;
 
@@ -14,46 +13,38 @@ public class Login extends RoundedPanel{
     private final int MARGIN = 10;
     private final int ARC = 20;
     private static final int LINE_SIZE = 30;
-    public  RoundedPanel nicknameInput;
-    public Placeholder nicknameField;
+    private  RoundedPanel nicknameInput;
+    private Placeholder nicknameField;
     private RoundedPanel passwordInput;
     private RoundedButton sendButton;
     private RoundedButton restoreLastSessionButton;
-    public RoundedPanel finalLoginComponent;
-    private App appReference;
 
-    public Login(CardLayout crd, RoundedPanel leftPanel, App app) throws IOException {
-        this.appReference = app;
+    public Login(CardLayout crd, RoundedPanel leftPanel, App app) {
         createLoginInput();
         createSendButton();
         createRestoreSessionButton();
         createLoginCard();
         setOpaque(false);
-        sendButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        sendButton.addActionListener(e ->{
+            if (nicknameField.getText().isEmpty()){
+                App.createPopUpWindow("Provide nickname");
+            }else{
                 crd.next(leftPanel);
             }
         });
 
-        restoreLastSessionButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                Client deserializedClient;
-                try {
-                    deserializedClient = Client.deserialize("lastSession.txt");
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                } catch (ClassNotFoundException ex) {
-                    throw new RuntimeException(ex);
-                }
-
-                nicknameField.setText(deserializedClient.nickname);
-                app.inputIP.setText(deserializedClient.host + ":" + deserializedClient.port);
-                crd.next(leftPanel);
-                app.btnIP.doClick();
+        restoreLastSessionButton.addActionListener(e -> {
+            Client deserializedClient;
+            try {
+                deserializedClient = Client.deserialize("lastSession.txt");
+            } catch (IOException | ClassNotFoundException ex) {
+                throw new RuntimeException(ex);
             }
+
+            nicknameField.setText(deserializedClient.getNickname());
+            app.getInputIP().setText(deserializedClient.getHost() + ":" + deserializedClient.getPort());
+            crd.next(leftPanel);
+            app.getBtnIP().doClick();
         });
 
     }
@@ -75,25 +66,22 @@ public class Login extends RoundedPanel{
         nicknameField.setCaretColor(nicknameField.getBackground());
         nicknameInput.add(nicknameField);
     }
-
     private void createSendButton(){
         sendButton = new RoundedButton();
         sendButton.setRoundBottomLeft(20);
         sendButton.setRoundTopLeft(20);
         sendButton.setRoundTopRight(20);
         sendButton.setRoundBottomRight(20);
-        sendButton.setLabel("Sign in");
+        sendButton.setText("Sign in");
     }
-
     private void createRestoreSessionButton(){
         restoreLastSessionButton = new RoundedButton();
         restoreLastSessionButton.setRoundBottomLeft(20);
         restoreLastSessionButton.setRoundTopLeft(20);
         restoreLastSessionButton.setRoundTopRight(20);
         restoreLastSessionButton.setRoundBottomRight(20);
-        restoreLastSessionButton.setLabel("Restore last session");
+        restoreLastSessionButton.setText("Restore last session");
     }
-
     @Override
     protected void paintComponent(Graphics grphcs) {
         super.paintComponent(grphcs);
@@ -105,7 +93,6 @@ public class Login extends RoundedPanel{
         g2.fill(roundRect);
         g2.dispose();
     }
-
     private void createLoginCard() {
 
         GridBagLayout layout = new GridBagLayout();
@@ -135,6 +122,10 @@ public class Login extends RoundedPanel{
         c.anchor = GridBagConstraints.CENTER;
         this.add(restoreLastSessionButton, c);
 
-        this.finalLoginComponent= this;
+        RoundedPanel finalLoginComponent = this;
+    }
+
+    public Placeholder getNicknameField() {
+        return nicknameField;
     }
 }

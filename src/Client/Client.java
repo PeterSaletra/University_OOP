@@ -3,14 +3,13 @@ package src.Client;
 import java.io.*;
 import java.net.Socket;
 public class Client implements  Serializable, Runnable  {
-
-    transient public Socket client;
-    transient public BufferedReader in;
-    transient public PrintWriter out;
-    boolean done;
-    public String host;
-    public int port;
-    public String nickname;
+    transient private Socket client;
+    transient private BufferedReader in;
+    transient private PrintWriter out;
+    private boolean done ;
+    private String host;
+    private int port;
+    private final String nickname;
     transient private String[] activeClients;
     Client(String connection, String nickname) {
         this.nickname = nickname;
@@ -26,35 +25,30 @@ public class Client implements  Serializable, Runnable  {
     @Override
     public void run() {
         try {
-            client = new Socket(host, port);
-            out = new PrintWriter(client.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            out.println(nickname);
-            Thread inputThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        BufferedReader inReader = new BufferedReader(new InputStreamReader(System.in));
+            this.client = new Socket(host, port);
+            this.out = new PrintWriter(client.getOutputStream(), true);
+            this.in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            this.out.println(nickname);
+            Thread inputThread = new Thread(() -> {
+                try {
+                    BufferedReader inReader = new BufferedReader(new InputStreamReader(System.in));
+                    while (!done) {
+                        String message = inReader.readLine();
+                        if (message.equals("/quit")) {
+                            out.println(message);
+                            inReader.close();
+                            shutdown();
+                        } else if (message.equals("/active ")) {
 
-
-                        while (!done) {
-                            String message = inReader.readLine();
-                            if (message.equals("/quit")) {
-                                out.println(message);
-                                inReader.close();
-                                shutdown();
-                            } else if (message.equals("/active ")) {
-
-                                String clientsList = message.substring("/active ".length());
-                                activeClients = clientsList.split(",");
-                                App.updateActiveUsersPanel(activeClients);
-                            } else {
-                                out.println(message);
-                            }
+                            String clientsList = message.substring("/active ".length());
+                            activeClients = clientsList.split(",");
+                            App.updateActiveUsersPanel(activeClients);
+                        } else {
+                            out.println(message);
                         }
-                    } catch (IOException e) {
-                        shutdown();
                     }
+                } catch (IOException e) {
+                    shutdown();
                 }
             });
 
@@ -63,7 +57,7 @@ public class Client implements  Serializable, Runnable  {
             while ((inMessage = in.readLine()) != null) {
                 if (inMessage.startsWith("/active ")) {
                     String clientsList = inMessage.substring("/active ".length());
-                    activeClients = clientsList.split(",");
+                    this.activeClients = clientsList.split(",");
                     App.updateActiveUsersPanel(activeClients);
                 } else {
                     App.sendMessage(inMessage, 2);
@@ -74,21 +68,19 @@ public class Client implements  Serializable, Runnable  {
         }
     }
     public void shutdown() {
-        done = true;
+        this.done = true;
         try {
             in.close();
             out.close();
             if (!client.isClosed()) {
-                client.close();
+                this.client.close();
                 shutdown();
             }
         } catch (IOException e) {
             // ignore
         }
     }
-    public BufferedReader getIn() {
-        return in;
-    }
+
 
     public static void serialize(String filename, Object object) throws IOException {
         FileOutputStream fileOut = new FileOutputStream(filename);
@@ -107,5 +99,26 @@ public class Client implements  Serializable, Runnable  {
         fileIn.close();
         return deserializedClient;
     }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public PrintWriter getOut() {
+        return out;
+    }
+
+    public Socket getClient() {
+        return client;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
 }
 
